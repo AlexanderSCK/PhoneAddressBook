@@ -3,13 +3,15 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.11.35327.3
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PhoneAddressBook", "PhoneAddressBook.csproj", "{3BA73020-5263-4FDC-82B1-0399940C7445}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PhoneAddressBook", "PhoneAddressBook.csproj", "{3BA73020-5263-4FDC-82B1-0399940C7445}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PhoneAddressBook.Domain", "..\PhoneAddressBook.Domain\PhoneAddressBook.Domain.csproj", "{B3AFE9BC-9692-485D-9345-C725FA7D6706}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PhoneAddressBook.Domain", "..\PhoneAddressBook.Domain\PhoneAddressBook.Domain.csproj", "{B3AFE9BC-9692-485D-9345-C725FA7D6706}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PhoneAddressBook.Application", "..\PhoneAddressBook.Application\PhoneAddressBook.Application.csproj", "{7A972B12-DFB3-4FA7-8805-2E0216B591E6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PhoneAddressBook.Application", "..\PhoneAddressBook.Application\PhoneAddressBook.Application.csproj", "{7A972B12-DFB3-4FA7-8805-2E0216B591E6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PhoneAddressBook.Infrastructure", "..\PhoneAddressBook.Infrastructure\PhoneAddressBook.Infrastructure.csproj", "{5A769F53-42A0-4945-AFF9-60B932E29683}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PhoneAddressBook.Infrastructure", "..\PhoneAddressBook.Infrastructure\PhoneAddressBook.Infrastructure.csproj", "{5A769F53-42A0-4945-AFF9-60B932E29683}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PhoneAddressBook.API", "..\PhoneAddressBook.API\PhoneAddressBook.API.csproj", "{A7BC964C-2CC6-4C9A-BA45-5F938795BFA9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +35,10 @@ Global
 		{5A769F53-42A0-4945-AFF9-60B932E29683}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5A769F53-42A0-4945-AFF9-60B932E29683}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5A769F53-42A0-4945-AFF9-60B932E29683}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A7BC964C-2CC6-4C9A-BA45-5F938795BFA9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A7BC964C-2CC6-4C9A-BA45-5F938795BFA9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A7BC964C-2CC6-4C9A-BA45-5F938795BFA9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A7BC964C-2CC6-4C9A-BA45-5F938795BFA9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

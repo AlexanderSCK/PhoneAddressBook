@@ -9,8 +9,12 @@ namespace PhoneAddressBook.Domain.Entities
 {
     public class Person
     {
-        public int Id { get; set; }
-        public string FullName { get; set; }
+        public Person()
+        {
+            Addresses = new List<Address>();
+        }
+        public Guid Id { get; set; }
+        public required string FullName { get; set; }
         public ICollection<Address> Addresses { get; set; }
     }
 }

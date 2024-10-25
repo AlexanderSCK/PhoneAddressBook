@@ -5,9 +5,9 @@ namespace PhoneAddressBook.Infrastructure.Models;
 
 public partial class Phonenumber
 {
-    public int Id { get; set; }
+    public Guid Id { get; set; }
 
-    public int Addressid { get; set; }
+    public Guid Addressid { get; set; }
 
     public string Phonenumber1 { get; set; } = null!;
 

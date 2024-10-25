@@ -8,8 +8,12 @@ namespace PhoneAddressBook.Domain.Entities
 {
     public class Address
     {
-        public int Id { get; set; }
-        public int PersonId { get; set; }
+        public Address()
+        {
+            PhoneNumbers = new List<PhoneNumber>();
+        }
+        public Guid Id { get; set; }
+        public Guid PersonId { get; set; }
         public int Type { get; set; } 
         public string AddressDetail { get; set; }
         public ICollection<PhoneNumber> PhoneNumbers { get; set; }

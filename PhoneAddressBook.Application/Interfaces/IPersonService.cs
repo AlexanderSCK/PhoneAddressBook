@@ -9,10 +9,11 @@ namespace PhoneAddressBook.Application.Interfaces
 {
     public interface IPersonService
     {
-        Task<(IEnumerable<Person> People, int TotalCount)> GetPeopleAsync(int pageNumber, int pageSize, string filter);
-        Task<Person> GetPersonByIdAsync(int id);
-        Task CreatePersonAsync(Person person);
-        Task UpdatePersonAsync(Person person);
-        Task DeletePersonAsync(int id);
+        Task<(IEnumerable<Person> Persons, int TotalCount)> GetAllAsync(int pageNumber, int pageSize, string filter);
+        Task<Person> GetByIdAsync(Guid id);
+        Task<int> GetTotalCountAsync(string filter);
+        Task<Person> AddAsync(Person person);
+        Task<Person> UpdateAsync(Person person);
+        Task DeleteAsync(Guid id);
     }
 }

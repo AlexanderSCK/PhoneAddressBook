@@ -3,85 +3,146 @@ using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using PhoneAddressBook.Application.Interfaces;
 using PhoneAddressBook.Infrastructure.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace PhoneAddressBook.Infrastructure.Repository
 {
     public class PersonRepository : IPersonRepository
     {
-        private readonly PhoneAddressBookDbContext _context;
+        private readonly PostgresContext _context;
         private readonly IMapper _mapper;
 
-        public PersonRepository(PhoneAddressBookDbContext context, IMapper mapper)
+        public PersonRepository(PostgresContext context, IMapper mapper)
         {
             _context = context;
             _mapper = mapper;
         }
 
-        public async Task<IEnumerable<Domain.Entities.Person>> GetAllAsync(int pageNumber, int pageSize, string filter)
+        public async Task<(IEnumerable<Domain.Entities.Person> Persons, int TotalCount)> GetAllAsync(int pageNumber, int pageSize, string filter)
         {
             var sql = @"
-                SELECT p.*, a.*, pn.*
-                FROM Persons p
-                LEFT JOIN Addresses a ON p.Id = a.Personid
-                LEFT JOIN PhoneNumbers pn ON a.Id = pn.Addressid
-                WHERE (@Filter IS NULL OR p.FullName ILIKE CONCAT('%', @Filter, '%'))
-                ORDER BY p.Id
-                LIMIT @PageSize OFFSET @Offset;
+                SELECT 
+                    p.id AS PersonId,
+                    p.fullname AS FullName,
+                    a.id AS AddressId,
+                    a.personid AS AddressPersonId,
+                    a.type AS AddressType,
+                    a.address AS AddressDetail,
+                    pn.id AS PhoneNumberId,
+                    pn.addressid AS PhoneNumberAddressId,
+                    pn.phonenumber AS PhoneNumber
+                FROM persons p
+                LEFT JOIN addresses a ON p.id = a.personid
+                LEFT JOIN phonenumbers pn ON a.id = pn.addressid
+                WHERE (@Filter IS NULL OR p.fullname ILIKE '%' || @Filter || '%')
+                ORDER BY p.id
+                LIMIT @PageSize OFFSET @Offset
             ";
 
             var offset = (pageNumber - 1) * pageSize;
-            var filterParam = new NpgsqlParameter("@Filter", string.IsNullOrEmpty(filter) ? (object)DBNull.Value : filter);
-            var pageSizeParam = new NpgsqlParameter("@PageSize", pageSize);
-            var offsetParam = new NpgsqlParameter("@Offset", offset);
+            var parameters = new[]
+            {
+                new NpgsqlParameter("@Filter", string.IsNullOrEmpty(filter) ? (object)DBNull.Value : filter),
+                new NpgsqlParameter("@PageSize", pageSize),
+                new NpgsqlParameter("@Offset", offset)
+            };
 
-            var infrastructurePersons = await _context.Persons
-                .FromSqlRaw(sql, filterParam, pageSizeParam, offsetParam)
-                .Include(p => p.Addresses)
-                    .ThenInclude(a => a.Phonenumbers)
+            var rawResults = await _context.PersonAddressPhoneDtos
+                .FromSqlRaw(sql, parameters)
                 .ToListAsync();
 
-            var domainPersons = _mapper.Map<IEnumerable<Domain.Entities.Person>>(infrastructurePersons);
-            return domainPersons;
+            var domainPersons = rawResults
+                .GroupBy(r => new { r.PersonId, r.FullName })
+                .Select(g => new Domain.Entities.Person
+                {
+                    Id = g.Key.PersonId,
+                    FullName = g.Key.FullName,
+                    Addresses = g
+                        .Where(r => r.AddressId.HasValue)
+                        .GroupBy(r => new { r.AddressId, r.AddressPersonId, r.AddressType, r.AddressDetail })
+                        .Select(ag => new Domain.Entities.Address
+                        {
+                            Id = ag.Key.AddressId.Value,
+                            PersonId = ag.Key.AddressPersonId.Value,
+                            Type = ag.Key.AddressType ?? 0,
+                            AddressDetail = ag.Key.AddressDetail,
+                            PhoneNumbers = ag
+                                .Where(r => r.PhoneNumberId.HasValue)
+                                .Select(rp => new Domain.Entities.PhoneNumber
+                                {
+                                    Id = rp.PhoneNumberId.Value,
+                                    AddressId = rp.PhoneNumberAddressId.Value,
+                                    Number = rp.PhoneNumber
+                                }).ToList()
+                        }).ToList()
+                }).ToList();
+
+            var totalCount = await GetTotalCountAsync(filter);
+            return (domainPersons, totalCount);
         }
 
-        public async Task<Domain.Entities.Person> GetByIdAsync(int id)
+        public async Task<Domain.Entities.Person> GetByIdAsync(Guid id)
         {
             var sql = @"
-                SELECT p.*, a.*, pn.*
-                FROM Persons p
-                LEFT JOIN Addresses a ON p.Id = a.Personid
-                LEFT JOIN PhoneNumbers pn ON a.Id = pn.Addressid
-                WHERE p.Id = @Id;
+                SELECT 
+                    p.id AS PersonId,
+                    p.fullname AS FullName,
+                    a.id AS AddressId,
+                    a.personid AS AddressPersonId,
+                    a.type AS AddressType,
+                    a.address AS AddressDetail,
+                    pn.id AS PhoneNumberId,
+                    pn.addressid AS PhoneNumberAddressId,
+                    pn.phonenumber AS PhoneNumber
+                FROM persons p
+                LEFT JOIN addresses a ON p.id = a.personid
+                LEFT JOIN phonenumbers pn ON a.id = pn.addressid
+                WHERE p.id = @Id
             ";
 
             var idParam = new NpgsqlParameter("@Id", id);
 
-            var infrastructurePerson = await _context.Persons
+            var rawResults = await _context.PersonAddressPhoneDtos
                 .FromSqlRaw(sql, idParam)
-                .Include(p => p.Addresses)
-                    .ThenInclude(a => a.Phonenumbers)
-                .FirstOrDefaultAsync();
+                .ToListAsync();
 
-            if (infrastructurePerson == null)
+            if (!rawResults.Any())
                 return null;
 
-            // Map to Domain entity
-            var domainPerson = _mapper.Map<Domain.Entities.Person>(infrastructurePerson);
+            var domainPerson = new Domain.Entities.Person
+            {
+                Id = rawResults.First().PersonId,
+                FullName = rawResults.First().FullName,
+                Addresses = rawResults
+                    .Where(r => r.AddressId.HasValue)
+                    .GroupBy(r => new { r.AddressId, r.AddressPersonId, r.AddressType, r.AddressDetail })
+                    .Select(g => new Domain.Entities.Address
+                    {
+                        Id = g.Key.AddressId.Value,
+                        PersonId = g.Key.AddressPersonId.Value,
+                        Type = g.Key.AddressType ?? 0,
+                        AddressDetail = g.Key.AddressDetail,
+                        PhoneNumbers = g
+                            .Where(r => r.PhoneNumberId.HasValue)
+                            .Select(rp => new Domain.Entities.PhoneNumber
+                            {
+                                Id = rp.PhoneNumberId.Value,
+                                AddressId = rp.PhoneNumberAddressId.Value,
+                                Number = rp.PhoneNumber
+                            }).ToList()
+                    }).ToList()
+            };
+
             return domainPerson;
         }
 
         public async Task<int> GetTotalCountAsync(string filter)
         {
             var sql = @"
-                SELECT COUNT(*)
-                FROM Persons
-                WHERE (@Filter IS NULL OR FullName ILIKE CONCAT('%', @Filter, '%'));
-            ";
+    SELECT COUNT(*)
+    FROM persons
+    WHERE (@Filter IS NULL OR fullname ILIKE '%' || @Filter || '%')
+";
+
 
             var filterParam = new NpgsqlParameter("@Filter", string.IsNullOrEmpty(filter) ? (object)DBNull.Value : filter);
 
@@ -94,7 +155,7 @@ namespace PhoneAddressBook.Infrastructure.Repository
 
         public async Task AddAsync(Domain.Entities.Person person)
         {
-            var personEntity = _mapper.Map<Models.Person>(person);
+            var personEntity = _mapper.Map<Person>(person);
 
             _context.Persons.Add(personEntity);
             await _context.SaveChangesAsync();
@@ -116,9 +177,9 @@ namespace PhoneAddressBook.Infrastructure.Repository
 
             foreach (var address in person.Addresses)
             {
-                if (address.Id == 0)
+                if (address.Id == Guid.Empty)
                 {
-                    var newAddress = _mapper.Map<Models.Address>(address);
+                    var newAddress = _mapper.Map<Address>(address);
                     existingPerson.Addresses.Add(newAddress);
                 }
                 else
@@ -130,9 +191,9 @@ namespace PhoneAddressBook.Infrastructure.Repository
 
                         foreach (var phone in address.PhoneNumbers)
                         {
-                            if (phone.Id == 0)
+                            if (phone.Id == Guid.Empty)
                             {
-                                var newPhone = _mapper.Map<Models.Phonenumber>(phone);
+                                var newPhone = _mapper.Map<Phonenumber>(phone);
                                 existingAddress.Phonenumbers.Add(newPhone);
                             }
                             else
@@ -145,7 +206,7 @@ namespace PhoneAddressBook.Infrastructure.Repository
                             }
                         }
 
-                        var updatedPhoneIds = address.PhoneNumbers.Where(p => p.Id != 0).Select(p => p.Id).ToList();
+                        var updatedPhoneIds = address.PhoneNumbers.Where(p => p.Id != Guid.Empty).Select(p => p.Id).ToList();
                         var phonesToRemove = existingAddress.Phonenumbers.Where(pn => !updatedPhoneIds.Contains(pn.Id)).ToList();
                         foreach (var phone in phonesToRemove)
                         {
@@ -155,7 +216,7 @@ namespace PhoneAddressBook.Infrastructure.Repository
                 }
             }
 
-            var updatedAddressIds = person.Addresses.Where(a => a.Id != 0).Select(a => a.Id).ToList();
+            var updatedAddressIds = person.Addresses.Where(a => a.Id != Guid.Empty).Select(a => a.Id).ToList();
             var addressesToRemove = existingPerson.Addresses.Where(a => !updatedAddressIds.Contains(a.Id)).ToList();
             foreach (var address in addressesToRemove)
             {
@@ -165,7 +226,7 @@ namespace PhoneAddressBook.Infrastructure.Repository
             await _context.SaveChangesAsync();
         }
 
-        public async Task DeleteAsync(int id)
+        public async Task DeleteAsync(Guid id)
         {
             var person = await _context.Persons.FindAsync(id);
             if (person == null)

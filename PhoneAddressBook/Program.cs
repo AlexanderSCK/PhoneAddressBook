@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using PhoneAddressBook.Infrastructure;
 using PhoneAddressBook.Infrastructure.Module;
+using PhoneAddressBook.Application.Module;
 using Serilog;
 using Serilog.Events;
 
@@ -20,6 +21,7 @@ Log.Logger = new LoggerConfiguration()
     .CreateLogger();
 
 builder.Services.AddInfrastructureModule(builder.Configuration);
+builder.Services.AddApplicationModule(builder.Configuration);
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();

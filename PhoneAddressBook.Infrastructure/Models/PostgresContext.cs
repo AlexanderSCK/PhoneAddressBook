@@ -1,16 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
+using PhoneAddressBook.API.DTOs;
 
 namespace PhoneAddressBook.Infrastructure.Models;
 
-public partial class PhoneAddressBookDbContext : DbContext
+public partial class PostgresContext : DbContext
 {
-    public PhoneAddressBookDbContext()
+    public PostgresContext()
     {
     }
 
-    public PhoneAddressBookDbContext(DbContextOptions<PhoneAddressBookDbContext> options)
+    public PostgresContext(DbContextOptions<PostgresContext> options)
         : base(options)
     {
     }
@@ -21,19 +22,27 @@ public partial class PhoneAddressBookDbContext : DbContext
 
     public virtual DbSet<Phonenumber> Phonenumbers { get; set; }
 
+    public DbSet<PersonAddressPhoneDto> PersonAddressPhoneDtos { get; set; }
+
+
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
         => optionsBuilder.UseNpgsql("Host=database-2.cp0u0o8yqdh5.eu-north-1.rds.amazonaws.com;Database=postgres;Username=postgres;Password=phoneAddressBook123");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.HasPostgresExtension("uuid-ossp");
+        modelBuilder.Entity<PersonAddressPhoneDto>().HasNoKey();
+
         modelBuilder.Entity<Address>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("addresses_pkey");
 
             entity.ToTable("addresses");
 
-            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.Id)
+                .HasDefaultValueSql("uuid_generate_v4()")
+                .HasColumnName("id");
             entity.Property(e => e.Address1)
                 .HasMaxLength(255)
                 .HasColumnName("address");
@@ -51,7 +60,9 @@ public partial class PhoneAddressBookDbContext : DbContext
 
             entity.ToTable("persons");
 
-            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.Id)
+                .HasDefaultValueSql("uuid_generate_v4()")
+                .HasColumnName("id");
             entity.Property(e => e.Fullname)
                 .HasMaxLength(255)
                 .HasColumnName("fullname");
@@ -63,7 +74,9 @@ public partial class PhoneAddressBookDbContext : DbContext
 
             entity.ToTable("phonenumbers");
 
-            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.Id)
+                .HasDefaultValueSql("uuid_generate_v4()")
+                .HasColumnName("id");
             entity.Property(e => e.Addressid).HasColumnName("addressid");
             entity.Property(e => e.Phonenumber1)
                 .HasMaxLength(20)

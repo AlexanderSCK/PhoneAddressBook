@@ -15,10 +15,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Controllers\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\PhoneAddressBook.Application\PhoneAddressBook.Application.csproj" />
     <ProjectReference Include="..\PhoneAddressBook.Domain\PhoneAddressBook.Domain.csproj" />
     <ProjectReference Include="..\PhoneAddressBook.Infrastructure\PhoneAddressBook.Infrastructure.csproj" />

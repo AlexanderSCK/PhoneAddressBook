@@ -12,7 +12,7 @@ namespace PhoneAddressBook.Infrastructure.Module
     {
         public static void AddInfrastructureModule(this IServiceCollection services, IConfiguration configuration)
         {
-            services.AddDbContext<PhoneAddressBookDbContext>(options =>
+            services.AddDbContext<PostgresContext>(options =>
                 options.UseNpgsql(configuration.GetConnectionString("DefaultConnection")));
 
             services.AddScoped<IPersonRepository, PersonRepository>();
