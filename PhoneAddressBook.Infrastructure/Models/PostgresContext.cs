@@ -27,12 +27,11 @@ public partial class PostgresContext : DbContext
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseNpgsql("Host=database-2.cp0u0o8yqdh5.eu-north-1.rds.amazonaws.com;Database=postgres;Username=postgres;Password=phoneAddressBook123");
+        => optionsBuilder.UseNpgsql("Host=database-2.cp0u0o8yqdh5.eu-north-1.rds.amazonaws.com;Port=5432;Database=postgres;Username=postgres;Password=phoneAddressBook123");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.HasPostgresExtension("uuid-ossp");
-        modelBuilder.Entity<PersonAddressPhoneDto>().HasNoKey();
 
         modelBuilder.Entity<Address>(entity =>
         {
@@ -40,9 +39,7 @@ public partial class PostgresContext : DbContext
 
             entity.ToTable("addresses");
 
-            entity.Property(e => e.Id)
-                .HasDefaultValueSql("uuid_generate_v4()")
-                .HasColumnName("id");
+            entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.Address1)
                 .HasMaxLength(255)
                 .HasColumnName("address");
@@ -60,9 +57,7 @@ public partial class PostgresContext : DbContext
 
             entity.ToTable("persons");
 
-            entity.Property(e => e.Id)
-                .HasDefaultValueSql("uuid_generate_v4()")
-                .HasColumnName("id");
+            entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.Fullname)
                 .HasMaxLength(255)
                 .HasColumnName("fullname");
@@ -74,17 +69,21 @@ public partial class PostgresContext : DbContext
 
             entity.ToTable("phonenumbers");
 
-            entity.Property(e => e.Id)
-                .HasDefaultValueSql("uuid_generate_v4()")
-                .HasColumnName("id");
+            entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.Addressid).HasColumnName("addressid");
             entity.Property(e => e.Phonenumber1)
-                .HasMaxLength(20)
+                .HasMaxLength(50)
                 .HasColumnName("phonenumber");
 
             entity.HasOne(d => d.Address).WithMany(p => p.Phonenumbers)
                 .HasForeignKey(d => d.Addressid)
                 .HasConstraintName("phonenumbers_addressid_fkey");
+        });
+
+        modelBuilder.Entity<PersonAddressPhoneDto>(entity =>
+        {
+            entity.HasNoKey();
+            entity.ToView(null); 
         });
 
         OnModelCreatingPartial(modelBuilder);

@@ -80,7 +80,7 @@ namespace PhoneAddressBook.Infrastructure.Repository
             return (domainPersons, totalCount);
         }
 
-        public async Task<Domain.Entities.Person> GetByIdAsync(Guid id)
+        public async Task<Domain.Entities.Person> GetByIdAsync(int id)
         {
             var sql = @"
                 SELECT 
@@ -177,7 +177,7 @@ namespace PhoneAddressBook.Infrastructure.Repository
 
             foreach (var address in person.Addresses)
             {
-                if (address.Id == Guid.Empty)
+                if (address.Id == 0)
                 {
                     var newAddress = _mapper.Map<Address>(address);
                     existingPerson.Addresses.Add(newAddress);
@@ -191,7 +191,7 @@ namespace PhoneAddressBook.Infrastructure.Repository
 
                         foreach (var phone in address.PhoneNumbers)
                         {
-                            if (phone.Id == Guid.Empty)
+                            if (phone.Id == 0)
                             {
                                 var newPhone = _mapper.Map<Phonenumber>(phone);
                                 existingAddress.Phonenumbers.Add(newPhone);
@@ -206,7 +206,7 @@ namespace PhoneAddressBook.Infrastructure.Repository
                             }
                         }
 
-                        var updatedPhoneIds = address.PhoneNumbers.Where(p => p.Id != Guid.Empty).Select(p => p.Id).ToList();
+                        var updatedPhoneIds = address.PhoneNumbers.Where(p => p.Id != 0).Select(p => p.Id).ToList();
                         var phonesToRemove = existingAddress.Phonenumbers.Where(pn => !updatedPhoneIds.Contains(pn.Id)).ToList();
                         foreach (var phone in phonesToRemove)
                         {
@@ -216,7 +216,7 @@ namespace PhoneAddressBook.Infrastructure.Repository
                 }
             }
 
-            var updatedAddressIds = person.Addresses.Where(a => a.Id != Guid.Empty).Select(a => a.Id).ToList();
+            var updatedAddressIds = person.Addresses.Where(a => a.Id != 0).Select(a => a.Id).ToList();
             var addressesToRemove = existingPerson.Addresses.Where(a => !updatedAddressIds.Contains(a.Id)).ToList();
             foreach (var address in addressesToRemove)
             {
@@ -226,7 +226,7 @@ namespace PhoneAddressBook.Infrastructure.Repository
             await _context.SaveChangesAsync();
         }
 
-        public async Task DeleteAsync(Guid id)
+        public async Task DeleteAsync(int id)
         {
             var person = await _context.Persons.FindAsync(id);
             if (person == null)

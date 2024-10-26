@@ -25,7 +25,7 @@ namespace PhoneAddressBook.Application.Services
             return (result.Persons, result.TotalCount);
         }
 
-        public async Task<Person> GetByIdAsync(Guid id)
+        public async Task<Person> GetByIdAsync(int id)
         {
             var infrastructurePerson = await _personRepository.GetByIdAsync(id);
             if (infrastructurePerson == null)
@@ -52,7 +52,7 @@ namespace PhoneAddressBook.Application.Services
             return person;
         }
 
-        public async Task DeleteAsync(Guid id)
+        public async Task DeleteAsync(int id)
         {
             await _personRepository.DeleteAsync(id);
         }

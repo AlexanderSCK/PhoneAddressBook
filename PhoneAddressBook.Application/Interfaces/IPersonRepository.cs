@@ -10,10 +10,10 @@ namespace PhoneAddressBook.Application.Interfaces
     public interface IPersonRepository
     {
         Task<(IEnumerable<Domain.Entities.Person> Persons, int TotalCount)> GetAllAsync(int pageNumber, int pageSize, string filter);
-        Task<Person> GetByIdAsync(Guid id);
+        Task<Person> GetByIdAsync(int id);
         Task<int> GetTotalCountAsync(string filter);
         Task AddAsync(Person person);
         Task UpdateAsync(Person person);
-        Task DeleteAsync(Guid id);
+        Task DeleteAsync(int id);
     }
 }

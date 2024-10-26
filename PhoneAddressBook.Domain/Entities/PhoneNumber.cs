@@ -8,9 +8,8 @@ namespace PhoneAddressBook.Domain.Entities
 {
     public class PhoneNumber
     {
-        public Guid Id { get; set; }
-        public Guid AddressId { get; set; }
-        public required string Number { get; set; }
-        public  Address Address { get; set; }
+        public int Id { get; set; } 
+        public int AddressId { get; set; } 
+        public string Number { get; set; } = string.Empty;
     }
 }

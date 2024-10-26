@@ -11,10 +11,10 @@ namespace PhoneAddressBook.Domain.Entities
     {
         public Person()
         {
-            Addresses = new List<Address>();
+            Addresses = [];
         }
-        public Guid Id { get; set; }
-        public required string FullName { get; set; }
+        public int Id { get; set; }
+        public string FullName { get; set; } = string.Empty;
         public ICollection<Address> Addresses { get; set; }
     }
 }

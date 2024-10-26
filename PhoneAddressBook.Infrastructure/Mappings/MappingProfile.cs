@@ -15,11 +15,12 @@ namespace PhoneAddressBook.Infrastructure.Mappings
         {
             // Domain to DTO
             CreateMap<Person, PersonDto>()
-                .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => src.FullName));
+            .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.FullName))
+            .ForMember(dest => dest.Addresses, opt => opt.MapFrom(src => src.Addresses));
 
             CreateMap<Address, AddressDto>()
-               .ForMember(dest => dest.AddressDetail, opt => opt.MapFrom(src => src.AddressDetail))
-               .ForMember(dest => dest.PhoneNumbers, opt => opt.MapFrom(src => src.PhoneNumbers));
+                .ForMember(dest => dest.Address, opt => opt.MapFrom(src => src.AddressDetail))
+                .ForMember(dest => dest.PhoneNumbers, opt => opt.MapFrom(src => src.PhoneNumbers.Select(pn => pn.Number).ToList()));
 
             CreateMap<PhoneNumber, PhoneNumberDto>()
                 .ForMember(dest => dest.Number, opt => opt.MapFrom(src => src.Number));
@@ -29,22 +30,18 @@ namespace PhoneAddressBook.Infrastructure.Mappings
                 .ForMember(dest => dest.Id, opt => opt.Ignore());
 
             CreateMap<CreateAddressDto, Address>()
-                .ForMember(dest => dest.Id, opt => opt.Ignore())
-                .ForMember(dest => dest.Person, opt => opt.Ignore());
+                .ForMember(dest => dest.Id, opt => opt.Ignore());
 
             CreateMap<CreatePhoneNumberDto, PhoneNumber>()
-                .ForMember(dest => dest.Id, opt => opt.Ignore())
-                .ForMember(dest => dest.Address, opt => opt.Ignore());
+                .ForMember(dest => dest.Id, opt => opt.Ignore());
 
             CreateMap<UpdatePersonDto, Person>()
                 .ForMember(dest => dest.Addresses, opt => opt.Ignore());
 
             CreateMap<UpdateAddressDto, Address>()
-                .ForMember(dest => dest.Person, opt => opt.Ignore())
                 .ForMember(dest => dest.PhoneNumbers, opt => opt.Ignore());
 
-            CreateMap<UpdatePhoneNumberDto, PhoneNumber>()
-                .ForMember(dest => dest.Address, opt => opt.Ignore());
+            CreateMap<UpdatePhoneNumberDto, PhoneNumber>();
 
             CreateMap<Person, Models.Person>()
                 .ForMember(dest => dest.Fullname, opt => opt.MapFrom(src => src.FullName))

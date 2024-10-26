@@ -36,7 +36,7 @@ namespace PhoneAddressBook.Controllers
                 PageNumber = pageNumber,
                 TotalCount = totalCount,
                 TotalPages = totalPages,
-                People = personDtos
+                People = _mapper.Map<List<PersonDto>>(persons)
             };
 
             return Ok(response);
@@ -46,7 +46,7 @@ namespace PhoneAddressBook.Controllers
         /// Retrieves a person by their unique identifier.
         /// </summary>
         [HttpGet("{id}")]
-        public async Task<ActionResult<PersonDto>> GetById(Guid id)
+        public async Task<ActionResult<PersonDto>> GetById(int id)
         {
             var person = await _personService.GetByIdAsync(id);
             if (person == null)
@@ -73,7 +73,7 @@ namespace PhoneAddressBook.Controllers
         /// Updates an existing person.
         /// </summary>
         [HttpPut("{id}")]
-        public async Task<ActionResult<PersonDto>> Update(Guid id, UpdatePersonDto updatePersonDto)
+        public async Task<ActionResult<PersonDto>> Update(int id, UpdatePersonDto updatePersonDto)
         {
             if (id != updatePersonDto.Id)
                 return BadRequest("ID mismatch.");
@@ -89,7 +89,7 @@ namespace PhoneAddressBook.Controllers
         /// Deletes a person by their unique identifier.
         /// </summary>
         [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(Guid id)
+        public async Task<IActionResult> Delete(int id)
         {
             await _personService.DeleteAsync(id);
             return NoContent();

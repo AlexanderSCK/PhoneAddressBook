@@ -9,18 +9,18 @@ namespace PhoneAddressBook.API.DTOs
     public class PersonAddressPhoneDto
     {
         // Person Fields
-        public Guid PersonId { get; set; }
+        public int PersonId { get; set; }
         public string FullName { get; set; } = string.Empty;
 
         // Address Fields
-        public Guid? AddressId { get; set; }
-        public Guid? AddressPersonId { get; set; }
+        public int? AddressId { get; set; }
+        public int? AddressPersonId { get; set; }
         public int? AddressType { get; set; }
         public string AddressDetail { get; set; } = string.Empty;
 
         // PhoneNumber Fields
-        public Guid? PhoneNumberId { get; set; }
-        public Guid? PhoneNumberAddressId { get; set; }
+        public int? PhoneNumberId { get; set; }
+        public int? PhoneNumberAddressId { get; set; }
         public string PhoneNumber { get; set; } = string.Empty;
     }
 }
