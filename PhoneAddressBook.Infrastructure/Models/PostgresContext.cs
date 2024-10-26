@@ -45,7 +45,8 @@ public partial class PostgresContext : DbContext
                 .HasColumnName("address");
             entity.Property(e => e.Personid).HasColumnName("personid");
             entity.Property(e => e.Type).HasColumnName("type");
-
+            entity.Property(e => e.Type).HasConversion<int>() 
+            .IsRequired();
             entity.HasOne(d => d.Person).WithMany(p => p.Addresses)
                 .HasForeignKey(d => d.Personid)
                 .HasConstraintName("addresses_personid_fkey");

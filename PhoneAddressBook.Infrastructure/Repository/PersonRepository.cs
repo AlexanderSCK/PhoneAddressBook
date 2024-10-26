@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
+using PhoneAddressBook.API.Exceptions;
 using PhoneAddressBook.Application.Interfaces;
 using PhoneAddressBook.Infrastructure.Models;
 
@@ -37,17 +38,25 @@ namespace PhoneAddressBook.Infrastructure.Repository
                 ORDER BY p.id
                 LIMIT @PageSize OFFSET @Offset
             ";
-
             var offset = (pageNumber - 1) * pageSize;
-            var parameters = new[]
+            var filterParam = new NpgsqlParameter("@Filter", NpgsqlTypes.NpgsqlDbType.Varchar)
             {
-                new NpgsqlParameter("@Filter", string.IsNullOrEmpty(filter) ? (object)DBNull.Value : filter),
-                new NpgsqlParameter("@PageSize", pageSize),
-                new NpgsqlParameter("@Offset", offset)
+                Value = string.IsNullOrWhiteSpace(filter) ? DBNull.Value : filter
+            };
+
+            var pageSizeParam = new NpgsqlParameter("@PageSize", NpgsqlTypes.NpgsqlDbType.Integer)
+            {
+                Value = pageSize
+            };
+
+            var offsetParam = new NpgsqlParameter("@Offset", NpgsqlTypes.NpgsqlDbType.Integer)
+            {
+                Value = offset
             };
 
             var rawResults = await _context.PersonAddressPhoneDtos
-                .FromSqlRaw(sql, parameters)
+                .FromSqlRaw(sql, filterParam, pageSizeParam, offsetParam)
+                .AsNoTracking()
                 .ToListAsync();
 
             var domainPersons = rawResults
@@ -63,7 +72,7 @@ namespace PhoneAddressBook.Infrastructure.Repository
                         {
                             Id = ag.Key.AddressId.Value,
                             PersonId = ag.Key.AddressPersonId.Value,
-                            Type = ag.Key.AddressType ?? 0,
+                            Type = (Domain.Enums.AddressType)(ag.Key.AddressType ?? 1),
                             AddressDetail = ag.Key.AddressDetail,
                             PhoneNumbers = ag
                                 .Where(r => r.PhoneNumberId.HasValue)
@@ -103,10 +112,8 @@ namespace PhoneAddressBook.Infrastructure.Repository
 
             var rawResults = await _context.PersonAddressPhoneDtos
                 .FromSqlRaw(sql, idParam)
+                .AsNoTracking()
                 .ToListAsync();
-
-            if (!rawResults.Any())
-                return null;
 
             var domainPerson = new Domain.Entities.Person
             {
@@ -119,7 +126,7 @@ namespace PhoneAddressBook.Infrastructure.Repository
                     {
                         Id = g.Key.AddressId.Value,
                         PersonId = g.Key.AddressPersonId.Value,
-                        Type = g.Key.AddressType ?? 0,
+                        Type = (Domain.Enums.AddressType)(g.Key.AddressType ?? 0),
                         AddressDetail = g.Key.AddressDetail,
                         PhoneNumbers = g
                             .Where(r => r.PhoneNumberId.HasValue)
@@ -138,13 +145,14 @@ namespace PhoneAddressBook.Infrastructure.Repository
         public async Task<int> GetTotalCountAsync(string filter)
         {
             var sql = @"
-    SELECT COUNT(*)
-    FROM persons
-    WHERE (@Filter IS NULL OR fullname ILIKE '%' || @Filter || '%')
-";
+               SELECT COUNT(*)
+               FROM persons
+               WHERE (@Filter IS NULL OR fullname ILIKE '%' || @Filter || '%')";
 
-
-            var filterParam = new NpgsqlParameter("@Filter", string.IsNullOrEmpty(filter) ? (object)DBNull.Value : filter);
+            var filterParam = new NpgsqlParameter("@Filter", NpgsqlTypes.NpgsqlDbType.Varchar)
+            {
+                Value = string.IsNullOrWhiteSpace(filter) ? DBNull.Value : filter
+            };
 
             var count = await _context.Persons
                 .FromSqlRaw(sql, filterParam)
@@ -156,7 +164,6 @@ namespace PhoneAddressBook.Infrastructure.Repository
         public async Task AddAsync(Domain.Entities.Person person)
         {
             var personEntity = _mapper.Map<Person>(person);
-
             _context.Persons.Add(personEntity);
             await _context.SaveChangesAsync();
 
@@ -170,8 +177,10 @@ namespace PhoneAddressBook.Infrastructure.Repository
                     .ThenInclude(a => a.Phonenumbers)
                 .FirstOrDefaultAsync(p => p.Id == person.Id);
 
-            if (existingPerson == null)
-                throw new KeyNotFoundException("Person not found.");
+            if (existingPerson is null)
+            {
+                throw new NotFoundException($"Person with id: {person.Id} not found.");
+            }
 
             _mapper.Map(person, existingPerson);
 
@@ -229,9 +238,10 @@ namespace PhoneAddressBook.Infrastructure.Repository
         public async Task DeleteAsync(int id)
         {
             var person = await _context.Persons.FindAsync(id);
-            if (person == null)
-                throw new KeyNotFoundException("Person not found.");
-
+            if (person is null)
+            {
+                throw new NotFoundException($"Person with id: {id} not found.");
+            }
             _context.Persons.Remove(person);
             await _context.SaveChangesAsync();
         }

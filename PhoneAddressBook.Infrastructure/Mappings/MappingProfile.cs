@@ -19,6 +19,7 @@ namespace PhoneAddressBook.Infrastructure.Mappings
             .ForMember(dest => dest.Addresses, opt => opt.MapFrom(src => src.Addresses));
 
             CreateMap<Address, AddressDto>()
+                .ForMember(dest => dest.Type, opt => opt.MapFrom(src => (int)src.Type))
                 .ForMember(dest => dest.Address, opt => opt.MapFrom(src => src.AddressDetail))
                 .ForMember(dest => dest.PhoneNumbers, opt => opt.MapFrom(src => src.PhoneNumbers.Select(pn => pn.Number).ToList()));
 

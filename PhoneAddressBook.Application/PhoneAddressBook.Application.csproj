@@ -12,6 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\PhoneAddressBook.API\PhoneAddressBook.API.csproj" />
     <ProjectReference Include="..\PhoneAddressBook.Domain\PhoneAddressBook.Domain.csproj" />
   </ItemGroup>
 

@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using PhoneAddressBook.API.Exceptions;
 using PhoneAddressBook.Application.Interfaces;
 using PhoneAddressBook.Domain.Entities;
 using System;
@@ -27,11 +28,8 @@ namespace PhoneAddressBook.Application.Services
 
         public async Task<Person> GetByIdAsync(int id)
         {
-            var infrastructurePerson = await _personRepository.GetByIdAsync(id);
-            if (infrastructurePerson == null)
-                return null;
-
-            return infrastructurePerson;
+            var domainPerson = await _personRepository.GetByIdAsync(id);
+            return domainPerson;
         }
 
         public async Task<int> GetTotalCountAsync(string filter)

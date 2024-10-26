@@ -1,4 +1,5 @@
-﻿using System;
+﻿using PhoneAddressBook.Domain.Enums;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -14,7 +15,7 @@ namespace PhoneAddressBook.Domain.Entities
         }
         public int Id { get; set; } 
         public int PersonId { get; set; } 
-        public int Type { get; set; }
+        public AddressType Type { get; set; }
         public string AddressDetail { get; set; } = string.Empty;
         public ICollection<PhoneNumber> PhoneNumbers { get; set; }
     }

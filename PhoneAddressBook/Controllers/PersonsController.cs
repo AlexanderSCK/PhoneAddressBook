@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using PhoneAddressBook.API.DTOs;
+using PhoneAddressBook.API.Exceptions;
 using PhoneAddressBook.Application.Interfaces;
 using PhoneAddressBook.Domain.Entities;
 
@@ -49,10 +50,8 @@ namespace PhoneAddressBook.Controllers
         public async Task<ActionResult<PersonDto>> GetById(int id)
         {
             var person = await _personService.GetByIdAsync(id);
-            if (person == null)
-                return NotFound();
-
             var personDto = _mapper.Map<PersonDto>(person);
+
             return Ok(personDto);
         }
 
@@ -62,6 +61,10 @@ namespace PhoneAddressBook.Controllers
         [HttpPost]
         public async Task<ActionResult<PersonDto>> Create(CreatePersonDto createPersonDto)
         {
+            if (!ModelState.IsValid)
+            {
+                throw new BadRequestException(ModelState);
+            }
             var person = _mapper.Map<Person>(createPersonDto);
             var addedPerson = await _personService.AddAsync(person);
             var personDto = _mapper.Map<PersonDto>(addedPerson);
@@ -76,7 +79,9 @@ namespace PhoneAddressBook.Controllers
         public async Task<ActionResult<PersonDto>> Update(int id, UpdatePersonDto updatePersonDto)
         {
             if (id != updatePersonDto.Id)
+            {
                 return BadRequest("ID mismatch.");
+            }
 
             var person = _mapper.Map<Person>(updatePersonDto);
             var updatedPerson = await _personService.UpdateAsync(person);
