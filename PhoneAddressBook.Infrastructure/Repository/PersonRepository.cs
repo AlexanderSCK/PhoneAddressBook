@@ -146,21 +146,14 @@ public class PersonRepository : IPersonRepository
 
     public async Task<int> GetTotalCountAsync(string filter)
     {
-        var sql = @"
-               SELECT COUNT(*)
-               FROM persons
-               WHERE (@Filter IS NULL OR fullname ILIKE '%' || @Filter || '%')";
-
-        var filterParam = new NpgsqlParameter("@Filter", NpgsqlTypes.NpgsqlDbType.Varchar)
+        if (string.IsNullOrWhiteSpace(filter))
         {
-            Value = string.IsNullOrWhiteSpace(filter) ? DBNull.Value : filter
-        };
+            return await _context.Persons.CountAsync();
+        }
 
-        var count = await _context.Persons
-            .FromSqlRaw(sql, filterParam)
+        return await _context.Persons
+            .Where(p => EF.Functions.ILike(p.Fullname, $"%{filter}%"))
             .CountAsync();
-
-        return count;
     }
 
     public async Task AddAsync(Domain.Entities.Person person)
