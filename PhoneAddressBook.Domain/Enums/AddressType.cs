@@ -1,14 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿namespace PhoneAddressBook.Domain.Enums;
 
-namespace PhoneAddressBook.Domain.Enums
+public enum AddressType
 {
-    public enum AddressType
-    {
-        Home = 1,
-        Business = 2
-    }
+    Home = 1,
+    Business = 2
 }

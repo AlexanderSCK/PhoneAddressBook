@@ -3,41 +3,39 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using PhoneAddressBook.API.Exceptions;
-using Serilog;
 
-namespace PhoneAddressBook.API.Middleware
+namespace PhoneAddressBook.API.Middleware;
+
+public sealed class GlobalExceptionHandler : IExceptionHandler
 {
-    public sealed class GlobalExceptionHandler : IExceptionHandler
+    private readonly ILogger<GlobalExceptionHandler> _logger;
+
+    public GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger)
     {
-        private readonly ILogger<GlobalExceptionHandler> _logger;
+        _logger = logger;
+    }
 
-        public GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger)
+    public async ValueTask<bool> TryHandleAsync(
+        HttpContext httpContext,
+        Exception exception,
+        CancellationToken cancellationToken)
+    {
+        var problemDetails = new ProblemDetails();
+        problemDetails.Instance = httpContext.Request.Path;
+        if (exception is BaseException e)
         {
-            _logger = logger;
+            httpContext.Response.StatusCode = (int)e.StatusCode;
+            problemDetails.Title = e.Message;
         }
-
-        public async ValueTask<bool> TryHandleAsync(
-            HttpContext httpContext,
-            Exception exception,
-            CancellationToken cancellationToken)
+        else
         {
-            var problemDetails = new ProblemDetails();
-            problemDetails.Instance = httpContext.Request.Path;
-            if (exception is BaseException e)
-            {
-                httpContext.Response.StatusCode = (int)e.StatusCode;
-                problemDetails.Title = e.Message;
-            }
-            else
-            {
-                problemDetails.Title = exception.Message;
-            }
-            _logger.LogError("{ProblemDetailsTitle}", problemDetails.Title);
-            problemDetails.Status = httpContext.Response.StatusCode;
-            await httpContext.Response
-                .WriteAsJsonAsync(problemDetails, cancellationToken);
-
-            return true;
+            problemDetails.Title = exception.Message;
         }
+        _logger.LogError("{ProblemDetailsTitle}", problemDetails.Title);
+        problemDetails.Status = httpContext.Response.StatusCode;
+        await httpContext.Response
+            .WriteAsJsonAsync(problemDetails, cancellationToken);
+
+        return true;
     }
 }

@@ -1,19 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.ComponentModel.DataAnnotations;
 
-namespace PhoneAddressBook.API.DTOs
+namespace PhoneAddressBook.API.DTOs;
+
+public class CreatePersonDto
 {
-    public class CreatePersonDto
-    {
-        [Required]
-        [StringLength(100, MinimumLength = 2)]
-        public string FullName { get; set; } = string.Empty;
+    [Required]
+    [StringLength(100, MinimumLength = 2)]
+    public string FullName { get; set; } = string.Empty;
 
-        [MinLength(1, ErrorMessage = "At least one address is required.")]
-        public ICollection<CreateAddressDto> Addresses { get; set; } = new List<CreateAddressDto>();
-    }
+    [MinLength(1, ErrorMessage = "At least one address is required.")]
+    public ICollection<CreateAddressDto> Addresses { get; set; } = new List<CreateAddressDto>();
 }

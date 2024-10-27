@@ -1,14 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿namespace PhoneAddressBook.API.DTOs;
 
-namespace PhoneAddressBook.API.DTOs
+public class PhoneNumberDto
 {
-    public class PhoneNumberDto
-    {
-        public int Id { get; set; }
-        public string Number { get; set; } = string.Empty;  
-    }
+    public int Id { get; set; }
+    public string Number { get; set; } = string.Empty;  
 }

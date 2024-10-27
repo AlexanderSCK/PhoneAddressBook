@@ -3,41 +3,39 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using PhoneAddressBook.API.Exceptions;
-using Serilog;
 
-namespace PhoneAddressBook.API.Middleware
+namespace PhoneAddressBook.API.Middleware;
+
+public class BadRequestExceptionHandler : IExceptionHandler
 {
-    public class BadRequestExceptionHandler : IExceptionHandler
+    private readonly ILogger<BadRequestExceptionHandler> _logger;
+
+    public BadRequestExceptionHandler(ILogger<BadRequestExceptionHandler> logger)
     {
-        private readonly ILogger<BadRequestExceptionHandler> _logger;
+        _logger = logger;
+    }
 
-        public BadRequestExceptionHandler(ILogger<BadRequestExceptionHandler> logger)
+    public async ValueTask<bool> TryHandleAsync(
+        HttpContext httpContext,
+        Exception exception,
+        CancellationToken cancellationToken)
+    {
+        if (exception is not BadRequestException badRequestException)
         {
-            _logger = logger;
+            return false;
         }
-
-        public async ValueTask<bool> TryHandleAsync(
-            HttpContext httpContext,
-            Exception exception,
-            CancellationToken cancellationToken)
+        var problemDetails = new ValidationProblemDetails(badRequestException.Errors)
         {
-            if (exception is not BadRequestException badRequestException)
-            {
-                return false;
-            }
-            var problemDetails = new ValidationProblemDetails(badRequestException.Errors)
-            {
-                Instance = httpContext.Request.Path,
-                Title = "Bad Request",
-                Detail = exception.Message
-            };
-            httpContext.Response.StatusCode = (int)badRequestException.StatusCode;
-            _logger.LogError("{ProblemDetailsTitle}", problemDetails.Title);
-            problemDetails.Status = httpContext.Response.StatusCode;
-            await httpContext.Response
-                .WriteAsJsonAsync(problemDetails, cancellationToken);
+            Instance = httpContext.Request.Path,
+            Title = "Bad Request",
+            Detail = exception.Message
+        };
+        httpContext.Response.StatusCode = (int)badRequestException.StatusCode;
+        _logger.LogError("{ProblemDetailsTitle}", problemDetails.Title);
+        problemDetails.Status = httpContext.Response.StatusCode;
+        await httpContext.Response
+            .WriteAsJsonAsync(problemDetails, cancellationToken);
 
-            return true;
-        }
+        return true;
     }
 }

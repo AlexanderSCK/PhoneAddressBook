@@ -1,17 +1,11 @@
-using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using PhoneAddressBook.Infrastructure;
 using PhoneAddressBook.Infrastructure.Module;
 using PhoneAddressBook.Application.Module;
 using Serilog;
-using Serilog.Events;
 using PhoneAddressBook.API.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-
 builder.Services.AddControllers();
 
 // Configure Serilog

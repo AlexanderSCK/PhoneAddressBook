@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace PhoneAddressBook.Infrastructure.Models;
+﻿namespace PhoneAddressBook.Infrastructure.Models;
 
 public partial class Phonenumber
 {
