@@ -20,8 +20,10 @@ public sealed class GlobalExceptionHandler : IExceptionHandler
         Exception exception,
         CancellationToken cancellationToken)
     {
-        var problemDetails = new ProblemDetails();
-        problemDetails.Instance = httpContext.Request.Path;
+        var problemDetails = new ProblemDetails
+        {
+            Instance = httpContext.Request.Path
+        };
         if (exception is BaseException e)
         {
             httpContext.Response.StatusCode = (int)e.StatusCode;

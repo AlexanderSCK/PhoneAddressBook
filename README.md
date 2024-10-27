@@ -8,6 +8,8 @@ Built on .NET 8
 
 Leveraging Postgre database deployed in AWS
 
+using Serilog for logging to file
+
 ## Endpoints
 
 ### 1. Get All Persons
@@ -19,24 +21,63 @@ Leveraging Postgre database deployed in AWS
 - **Request Body** (sample):
 
 ```json
-GET /api/persons?pageNumber=1&pageSize=10&filter=John HTTP/1.1
+GET /api/persons?pageNumber=1&pageSize=10&filter=Jane HTTP/1.1
 Host: localhost:5000
 Accept: application/json
 ```
 - **Response**: (sample):
 ```json
-
+{
+  "page_size": 10,
+  "page_number": 1,
+  "total_count": 1,
+  "total_pages": 1,
+  "people": [
+    {
+      "id": 4,
+      "name": "Alexander Petrov",
+      "addresses": [
+        {
+          "type": 2,
+          "address": "Makedonia blv",
+          "phone_numbers": [
+            "0887733123"
+          ]
+        }
+      ]
+    }
+  ]
+}
 ```
 
 ### 2. Get Person By ID
-- **Endpoint**: GET /api/persons/{id}
+- **Endpoint**: GET /api/persons/{id}  //Example 4
 - **Description**: Retrieves detailed information of a specific person by their ID.
 - **Headers**:
   - `Content-Type`: application/json
 - **Response**: (sample):
 
 ```json
-
+{
+  "id": 3,
+  "name": "Jane Smith",
+  "addresses": [
+    {
+      "type": 1,
+      "address": "789 Maple Ave, Springfield",
+      "phone_numbers": [
+        "555-4321"
+      ]
+    },
+    {
+      "type": 2,
+      "address": "321 Oak St, Springfield",
+      "phone_numbers": [
+        "555-6789"
+      ]
+    }
+  ]
+}
 ```
 ### 3. Add a New Person
 - **Endpoint**: POST /api/persons
@@ -46,25 +87,86 @@ Accept: application/json
 - **Request Body** (sample):
 
 ```json
-
+{
+  "fullName": "Alexander Petrov",
+  "addresses": [
+    {
+      "type": 1,
+      "addressDetail": "Tsar Boris 3",
+      "phoneNumbers": [
+        {
+          "number": "0886733123"
+        }
+      ]
+    }
+  ]
+}
 ```
 
 - **Response** (sample):
 
 ```json
-
+{
+  "id": 4,
+  "name": "Alexander Petrov",
+  "addresses": [
+    {
+      "type": 1,
+      "address": "Tsar Boris 3",
+      "phone_numbers": [
+        "0886733123"
+      ]
+    }
+  ]
+}
 ```
 
 ### 4. Update an Existing Person
-- **Endpoint**: PUT /api/persons/{id}
+- **Endpoint**: PUT /api/persons/{id} //Example 4
 - **Description**: Updates the details of an existing person, including their addresses and phone numbers.
 - **Headers**:
   - `Content-Type`: application/json
 - **Request Body** (sample):
+```json
+{
+  "addresses": [
+    {
+      "type": 2,
+      "addressDetail": "Makedonia blv",
+      "phoneNumbers": [
+        {
+          "number": "0887733123"
+        }
+      ]
+    }
+  ]
+}
+```
 
+- **Response** (sample):
+
+```json
+{
+  "id": 4,
+  "name": "Alexander Petrov",
+  "addresses": [
+    {
+      "type": 2,
+      "address": "Makedonia blv",
+      "phone_numbers": [
+        "0887733123"
+      ]
+    }
+  ]
+}
+```
 ### 4. Delete a Person
 - **Endpoint**: DELETE /api/persons/{id}
 - **Description**:  Deletes a person and all associated addresses and phone numbers.
 - **Headers**:
   - `Content-Type`: application/json
-- **Response** (sample): 204 NoContent
+- **Response** (sample): 200 NoContent
+
+```json
+Deleted person with id: [id]
+```

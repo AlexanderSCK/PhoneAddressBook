@@ -36,8 +36,13 @@ public class MappingProfile : Profile
 
         CreateMap<UpdateAddressDto, Address>()
             .ForMember(dest => dest.PhoneNumbers, opt => opt.Ignore());
-
-        CreateMap<UpdatePhoneNumberDto, PhoneNumber>();
+        CreateMap<UpdateAddressDto, Address>()
+            .ForMember(dest => dest.Id, opt => opt.Ignore()) // Ignore ID to prevent unintended updates
+            .ForMember(dest => dest.PersonId, opt => opt.Ignore()) // Set manually in repository
+            .ForMember(dest => dest.PhoneNumbers, opt => opt.Ignore());
+        CreateMap<UpdatePhoneNumberDto, PhoneNumber>()
+            .ForMember(dest => dest.Id, opt => opt.Ignore()) // Ignore ID to prevent unintended updates
+            .ForMember(dest => dest.AddressId, opt => opt.Ignore()); // Set manually in repository
 
         //Domain to Scaffolded models
         CreateMap<Person, Models.Person>()

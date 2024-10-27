@@ -11,7 +11,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PhoneAddressBook.Applicatio
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PhoneAddressBook.Infrastructure", "..\PhoneAddressBook.Infrastructure\PhoneAddressBook.Infrastructure.csproj", "{5A769F53-42A0-4945-AFF9-60B932E29683}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PhoneAddressBook.API", "..\PhoneAddressBook.API\PhoneAddressBook.API.csproj", "{A7BC964C-2CC6-4C9A-BA45-5F938795BFA9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PhoneAddressBook.API", "..\PhoneAddressBook.API\PhoneAddressBook.API.csproj", "{A7BC964C-2CC6-4C9A-BA45-5F938795BFA9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PhoneAddressBook.Tests", "..\PhoneAddressBook.Tests\PhoneAddressBook.Tests.csproj", "{5848A2A9-A848-42E5-AD64-BAFA88A94890}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -39,6 +41,10 @@ Global
 		{A7BC964C-2CC6-4C9A-BA45-5F938795BFA9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A7BC964C-2CC6-4C9A-BA45-5F938795BFA9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A7BC964C-2CC6-4C9A-BA45-5F938795BFA9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5848A2A9-A848-42E5-AD64-BAFA88A94890}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5848A2A9-A848-42E5-AD64-BAFA88A94890}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5848A2A9-A848-42E5-AD64-BAFA88A94890}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5848A2A9-A848-42E5-AD64-BAFA88A94890}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

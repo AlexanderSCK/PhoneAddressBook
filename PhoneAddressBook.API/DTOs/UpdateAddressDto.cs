@@ -4,8 +4,6 @@ namespace PhoneAddressBook.API.DTOs;
 
 public class UpdateAddressDto
 {
-    public int Id { get; set; }
-
     [Required]
     [Range(1, 2, ErrorMessage = "Type must be either 1 (Home) or 2 (Business).")]
     public int Type { get; set; }

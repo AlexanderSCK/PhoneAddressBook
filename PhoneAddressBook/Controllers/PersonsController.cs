@@ -74,15 +74,16 @@ public class PersonsController : ControllerBase
     /// Updates an existing person.
     /// </summary>
     [HttpPut("{id:int}")]
-    public async Task<ActionResult<PersonDto>> Update(int id, UpdatePersonDto updatePersonDto)
+    public async Task<ActionResult<PersonDto>> UpdateAddresses(int id, UpdatePersonDto updatePersonDto)
     {
-        if (id != updatePersonDto.Id)
+        if (!ModelState.IsValid)
         {
-            return BadRequest("ID mismatch.");
+            throw new BadRequestException(ModelState);
         }
 
-        var person = _mapper.Map<Person>(updatePersonDto);
-        var updatedPerson = await _personService.UpdateAsync(person);
+        await _personService.UpdateAddressesAsync(id, updatePersonDto.Addresses);
+
+        var updatedPerson = await _personService.GetByIdAsync(id);
         var personDto = _mapper.Map<PersonDto>(updatedPerson);
 
         return Ok(personDto);

@@ -1,6 +1,8 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Npgsql;
+using PhoneAddressBook.API.DTOs;
 using PhoneAddressBook.API.Exceptions;
 using PhoneAddressBook.Application.Interfaces;
 using PhoneAddressBook.Infrastructure.Models;
@@ -11,17 +13,22 @@ public class PersonRepository : IPersonRepository
 {
     private readonly PostgresContext _context;
     private readonly IMapper _mapper;
-
-    public PersonRepository(PostgresContext context, IMapper mapper)
+    private readonly ILogger<PersonRepository> _logger;
+    public PersonRepository(PostgresContext context, IMapper mapper, ILogger<PersonRepository> logger)
     {
         _context = context;
         _mapper = mapper;
+        _logger = logger;
     }
 
     public async Task<(IEnumerable<Domain.Entities.Person> Persons, int TotalCount)> GetAllAsync(int pageNumber,
         int pageSize, string filter)
     {
-        var sql = @"
+        _logger.LogInformation("GetAllAsync called with PageNumber: {PageNumber}, PageSize: {PageSize}, Filter: {Filter}", pageNumber, pageSize, filter);
+
+        try
+        {
+            var sql = @"
                 SELECT 
                     p.id AS PersonId,
                     p.fullname AS FullName,
@@ -40,60 +47,78 @@ public class PersonRepository : IPersonRepository
                 LIMIT @PageSize OFFSET @Offset
           ";
 
-        var offset = (pageNumber - 1) * pageSize;
-        var filterParam = new NpgsqlParameter("@Filter", NpgsqlTypes.NpgsqlDbType.Varchar)
-        {
-            Value = string.IsNullOrWhiteSpace(filter) ? DBNull.Value : filter
-        };
-
-        var pageSizeParam = new NpgsqlParameter("@PageSize", NpgsqlTypes.NpgsqlDbType.Integer)
-        {
-            Value = pageSize
-        };
-
-        var offsetParam = new NpgsqlParameter("@Offset", NpgsqlTypes.NpgsqlDbType.Integer)
-        {
-            Value = offset
-        };
-
-        var rawResults = await _context.PersonAddressPhoneDtos
-            .FromSqlRaw(sql, filterParam, pageSizeParam, offsetParam)
-            .AsNoTracking()
-            .ToListAsync();
-
-        var domainPersons = rawResults
-            .GroupBy(r => new { r.PersonId, r.FullName })
-            .Select(g => new Domain.Entities.Person
+            var offset = (pageNumber - 1) * pageSize;
+            var filterParam = new NpgsqlParameter("@Filter", NpgsqlTypes.NpgsqlDbType.Varchar)
             {
-                Id = g.Key.PersonId,
-                FullName = g.Key.FullName,
-                Addresses = g
-                    .Where(r => r.AddressId.HasValue)
-                    .GroupBy(r => new { r.AddressId, r.AddressPersonId, r.AddressType, r.AddressDetail })
-                    .Select(ag => new Domain.Entities.Address
-                    {
-                        Id = ag.Key.AddressId.Value,
-                        PersonId = ag.Key.AddressPersonId.Value,
-                        Type = (Domain.Enums.AddressType)(ag.Key.AddressType ?? 1),
-                        AddressDetail = ag.Key.AddressDetail,
-                        PhoneNumbers = ag
-                            .Where(r => r.PhoneNumberId.HasValue)
-                            .Select(rp => new Domain.Entities.PhoneNumber
-                            {
-                                Id = rp.PhoneNumberId.Value,
-                                AddressId = rp.PhoneNumberAddressId.Value,
-                                Number = rp.PhoneNumber
-                            }).ToList()
-                    }).ToList()
-            }).ToList();
+                Value = string.IsNullOrWhiteSpace(filter) ? DBNull.Value : filter
+            };
 
-        var totalCount = await GetTotalCountAsync(filter);
-        return (domainPersons, totalCount);
+            var pageSizeParam = new NpgsqlParameter("@PageSize", NpgsqlTypes.NpgsqlDbType.Integer)
+            {
+                Value = pageSize
+            };
+
+            var offsetParam = new NpgsqlParameter("@Offset", NpgsqlTypes.NpgsqlDbType.Integer)
+            {
+                Value = offset
+            };
+
+            _logger.LogDebug("Executing SQL: {Sql} with Parameters: {@Parameters}", sql, new { filterParam, pageSizeParam, offsetParam });
+
+            var rawResults = await _context.PersonAddressPhoneDtos
+                .FromSqlRaw(sql, filterParam, pageSizeParam, offsetParam)
+                .AsNoTracking()
+                .ToListAsync();
+
+            _logger.LogDebug("Raw results retrieved: {Count} records", rawResults.Count);
+
+            var domainPersons = rawResults
+                .GroupBy(r => new { r.PersonId, r.FullName })
+                .Select(g => new Domain.Entities.Person
+                {
+                    Id = g.Key.PersonId,
+                    FullName = g.Key.FullName,
+                    Addresses = g
+                        .Where(r => r.AddressId.HasValue)
+                        .GroupBy(r => new { r.AddressId, r.AddressPersonId, r.AddressType, r.AddressDetail })
+                        .Select(ag => new Domain.Entities.Address
+                        {
+                            Id = ag.Key.AddressId.Value,
+                            PersonId = ag.Key.AddressPersonId.Value,
+                            Type = (Domain.Enums.AddressType)(ag.Key.AddressType ?? 1),
+                            AddressDetail = ag.Key.AddressDetail,
+                            PhoneNumbers = ag
+                                .Where(r => r.PhoneNumberId.HasValue)
+                                .Select(rp => new Domain.Entities.PhoneNumber
+                                {
+                                    Id = rp.PhoneNumberId.Value,
+                                    AddressId = rp.PhoneNumberAddressId.Value,
+                                    Number = rp.PhoneNumber
+                                }).ToList()
+                        }).ToList()
+                }).ToList();
+
+            _logger.LogInformation("Total domain persons mapped: {Count}", domainPersons.Count);
+
+            var totalCount = await GetTotalCountAsync(filter);
+            _logger.LogInformation("Total count retrieved: {TotalCount}", totalCount);
+
+            return (domainPersons, totalCount);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "An error occurred in GetAllAsync with PageNumber: {PageNumber}, PageSize: {PageSize}, Filter: {Filter}", pageNumber, pageSize, filter);
+            throw; 
+        }
     }
 
     public async Task<Domain.Entities.Person> GetByIdAsync(int id)
     {
-        var sql = @"
+        _logger.LogInformation("GetByIdAsync called with Person ID: {PersonId}", id);
+
+        try
+        {
+            var sql = @"
                 SELECT 
                     p.id AS PersonId,
                     p.fullname AS FullName,
@@ -110,136 +135,174 @@ public class PersonRepository : IPersonRepository
                 WHERE p.id = @Id
             ";
 
-        var idParam = new NpgsqlParameter("@Id", id);
+            var idParam = new NpgsqlParameter("@Id", id);
 
-        var rawResults = await _context.PersonAddressPhoneDtos
-            .FromSqlRaw(sql, idParam)
-            .AsNoTracking()
-            .ToListAsync();
+            _logger.LogDebug("Executing SQL: {Sql} with Parameter: {@IdParam}", sql, idParam);
 
-        var domainPerson = new Domain.Entities.Person
-        {
-            Id = rawResults.First().PersonId,
-            FullName = rawResults.First().FullName,
-            Addresses = rawResults
-                .Where(r => r.AddressId.HasValue)
-                .GroupBy(r => new { r.AddressId, r.AddressPersonId, r.AddressType, r.AddressDetail })
-                .Select(g => new Domain.Entities.Address
-                {
-                    Id = g.Key.AddressId.Value,
-                    PersonId = g.Key.AddressPersonId.Value,
-                    Type = (Domain.Enums.AddressType)(g.Key.AddressType ?? 0),
-                    AddressDetail = g.Key.AddressDetail,
-                    PhoneNumbers = g
-                        .Where(r => r.PhoneNumberId.HasValue)
-                        .Select(rp => new Domain.Entities.PhoneNumber
-                        {
-                            Id = rp.PhoneNumberId.Value,
-                            AddressId = rp.PhoneNumberAddressId.Value,
-                            Number = rp.PhoneNumber
-                        }).ToList()
-                }).ToList()
-        };
+            var rawResults = await _context.PersonAddressPhoneDtos
+                .FromSqlRaw(sql, idParam)
+                .AsNoTracking()
+                .ToListAsync();
 
-        return domainPerson;
-    }
+            _logger.LogDebug("Raw results retrieved: {Count} records for Person ID: {PersonId}", rawResults.Count, id);
 
-    public async Task<int> GetTotalCountAsync(string filter)
-    {
-        if (string.IsNullOrWhiteSpace(filter))
-        {
-            return await _context.Persons.CountAsync();
+            if (!rawResults.Any())
+            {
+                throw new NotFoundException($"Person with ID {id} not found.");
+            }
+
+            var domainPerson = new Domain.Entities.Person
+            {
+                Id = rawResults.First().PersonId,
+                FullName = rawResults.First().FullName,
+                Addresses = rawResults
+                    .Where(r => r.AddressId.HasValue)
+                    .GroupBy(r => new { r.AddressId, r.AddressPersonId, r.AddressType, r.AddressDetail })
+                    .Select(g => new Domain.Entities.Address
+                    {
+                        Id = g.Key.AddressId.Value,
+                        PersonId = g.Key.AddressPersonId.Value,
+                        Type = (Domain.Enums.AddressType)(g.Key.AddressType ?? 0),
+                        AddressDetail = g.Key.AddressDetail,
+                        PhoneNumbers = g
+                            .Where(r => r.PhoneNumberId.HasValue)
+                            .Select(rp => new Domain.Entities.PhoneNumber
+                            {
+                                Id = rp.PhoneNumberId.Value,
+                                AddressId = rp.PhoneNumberAddressId.Value,
+                                Number = rp.PhoneNumber
+                            }).ToList()
+                    }).ToList()
+            };
+
+            _logger.LogInformation("Person retrieved successfully with ID: {PersonId}", id);
+
+            return domainPerson;
         }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "An error occurred in GetByIdAsync with Person ID: {PersonId}", id);
+            throw; 
+        }
+    }
+    private async Task<int> GetTotalCountAsync(string filter)
+    {
+        _logger.LogInformation("GetTotalCountAsync called with Filter: {Filter}", filter);
+        try
+        {
+            if (string.IsNullOrWhiteSpace(filter))
+            {
+                 var count = await _context.Persons.CountAsync();
+                _logger.LogInformation("Total count without filter: {Count}", count);
+                return count;
+            }
 
-        return await _context.Persons
-            .Where(p => EF.Functions.ILike(p.Fullname, $"%{filter}%"))
-            .CountAsync();
+            return await _context.Persons
+                .Where(p => EF.Functions.ILike(p.Fullname, $"%{filter}%"))
+                .CountAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "An error occurred in GetTotalCountAsync with Filter: {Filter}", filter);
+            throw;
+        }
     }
 
     public async Task AddAsync(Domain.Entities.Person person)
     {
-        var personEntity = _mapper.Map<Person>(person);
-        _context.Persons.Add(personEntity);
-        await _context.SaveChangesAsync();
+        _logger.LogInformation("AddAsync called to add a new Person: {@Person}", person);
 
-        _mapper.Map(personEntity, person);
+        try
+        {
+            var personEntity = _mapper.Map<Person>(person);
+            _context.Persons.Add(personEntity);
+
+            await _context.SaveChangesAsync();
+            _logger.LogInformation("Person added successfully with ID: {PersonId}", personEntity.Id);
+
+            _mapper.Map(personEntity, person);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "An error occurred while adding a new Person: {@Person}", person);
+            throw; 
+        }
     }
 
-    public async Task UpdateAsync(Domain.Entities.Person person)
+    public async Task UpdateAddressesAsync(int personId, ICollection<UpdateAddressDto> addressesDto)
     {
-        var existingPerson = await _context.Persons
-            .Include(p => p.Addresses)
-            .ThenInclude(a => a.Phonenumbers)
-            .FirstOrDefaultAsync(p => p.Id == person.Id);
+        _logger.LogInformation("UpdateAddressesAsync called for Person ID: {PersonId} with {AddressCount} addresses.", personId, addressesDto.Count);
 
-        if (existingPerson is null)
+        try
         {
-            throw new NotFoundException($"Person with id: {person.Id} not found.");
-        }
+            var person = await _context.Persons
+                .Include(p => p.Addresses)
+                .ThenInclude(a => a.Phonenumbers)
+                .FirstOrDefaultAsync(p => p.Id == personId);
 
-        _mapper.Map(person, existingPerson);
-
-        foreach (var address in person.Addresses)
-        {
-            if (address.Id == 0)
+            if (person == null)
             {
-                var newAddress = _mapper.Map<Address>(address);
-                existingPerson.Addresses.Add(newAddress);
+                throw new NotFoundException($"Person with ID {personId} not found.");
             }
-            else
+
+            _context.Phonenumbers.RemoveRange(person.Addresses.SelectMany(a => a.Phonenumbers));
+
+            _context.Addresses.RemoveRange(person.Addresses);
+
+            foreach (var addressDto in addressesDto)
             {
-                var existingAddress = existingPerson.Addresses.FirstOrDefault(a => a.Id == address.Id);
-                if (existingAddress != null)
+                _logger.LogDebug("Adding new Address: {@AddressDto} for Person ID: {PersonId}", addressDto, personId);
+                var newAddress = new Address
                 {
-                    _mapper.Map(address, existingAddress);
+                    Type = addressDto.Type,
+                    Address1 = addressDto.AddressDetail,
+                    Personid = personId
+                };
 
-                    foreach (var phone in address.PhoneNumbers)
+                foreach (var phoneDto in addressDto.PhoneNumbers)
+                {
+                    _logger.LogDebug("Adding new Phone Number: {PhoneNumber} to Address: {@Address}", phoneDto.Number, newAddress);
+                    var newPhoneNumber = new Phonenumber
                     {
-                        if (phone.Id == 0)
-                        {
-                            var newPhone = _mapper.Map<Phonenumber>(phone);
-                            existingAddress.Phonenumbers.Add(newPhone);
-                        }
-                        else
-                        {
-                            var existingPhone = existingAddress.Phonenumbers.FirstOrDefault(pn => pn.Id == phone.Id);
-                            if (existingPhone != null)
-                            {
-                                _mapper.Map(phone, existingPhone);
-                            }
-                        }
-                    }
-
-                    var updatedPhoneIds = address.PhoneNumbers.Where(p => p.Id != 0).Select(p => p.Id).ToList();
-                    var phonesToRemove = existingAddress.Phonenumbers.Where(pn => !updatedPhoneIds.Contains(pn.Id))
-                        .ToList();
-                    foreach (var phone in phonesToRemove)
-                    {
-                        existingAddress.Phonenumbers.Remove(phone);
-                    }
+                        Phonenumber1 = phoneDto.Number,
+                        Address = newAddress
+                    };
+                    _context.Phonenumbers.Add(newPhoneNumber);
                 }
+
+                _context.Addresses.Add(newAddress);
             }
-        }
 
-        var updatedAddressIds = person.Addresses.Where(a => a.Id != 0).Select(a => a.Id).ToList();
-        var addressesToRemove = existingPerson.Addresses.Where(a => !updatedAddressIds.Contains(a.Id)).ToList();
-        foreach (var address in addressesToRemove)
+            await _context.SaveChangesAsync();
+            _logger.LogInformation("Addresses and Phone Numbers updated successfully for Person ID: {PersonId}", personId);
+        }
+        catch (Exception ex)
         {
-            existingPerson.Addresses.Remove(address);
+            _logger.LogError(ex, "An error occurred while updating Addresses for Person ID: {PersonId}", personId);
+            throw; 
         }
-
-        await _context.SaveChangesAsync();
     }
 
     public async Task DeleteAsync(int id)
     {
-        var person = await _context.Persons.FindAsync(id);
-        if (person is null)
-        {
-            throw new NotFoundException($"Person with id: {id} not found.");
-        }
+        _logger.LogInformation("DeleteAsync called to delete Person with ID: {PersonId}", id);
 
-        _context.Persons.Remove(person);
-        await _context.SaveChangesAsync();
+        try
+        {
+            var person = await _context.Persons.FindAsync(id);
+            if (person is null)
+            {
+                throw new NotFoundException($"Person with id: {id} not found.");
+            }
+
+            _context.Persons.Remove(person);
+            await _context.SaveChangesAsync();
+            _logger.LogInformation("Person with ID: {PersonId} deleted successfully.", id);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "An error occurred while deleting Person with ID: {PersonId}", id);
+            throw;
+        }
     }
 }

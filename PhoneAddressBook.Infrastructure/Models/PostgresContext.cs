@@ -20,7 +20,7 @@ public partial class PostgresContext : DbContext
 
     public virtual DbSet<Phonenumber> Phonenumbers { get; set; }
 
-    public DbSet<PersonAddressPhoneDto> PersonAddressPhoneDtos { get; set; }
+    public virtual DbSet<PersonAddressPhoneDto> PersonAddressPhoneDtos { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

@@ -1,4 +1,5 @@
-﻿using PhoneAddressBook.Application.Interfaces;
+﻿using PhoneAddressBook.API.DTOs;
+using PhoneAddressBook.Application.Interfaces;
 using PhoneAddressBook.Domain.Entities;
 
 namespace PhoneAddressBook.Application.Services;
@@ -24,22 +25,15 @@ public class PersonService : IPersonService
         return domainPerson;
     }
 
-    public async Task<int> GetTotalCountAsync(string filter)
-    {
-        var count = await _personRepository.GetTotalCountAsync(filter);
-        return count;
-    }
-
     public async Task<Person> AddAsync(Person person)
     {
         await _personRepository.AddAsync(person);
         return person;
     }
 
-    public async Task<Person> UpdateAsync(Person person)
+    public async Task UpdateAddressesAsync(int personId, ICollection<UpdateAddressDto> addresses)
     {
-        await _personRepository.UpdateAsync(person);
-        return person;
+        await _personRepository.UpdateAddressesAsync(personId, addresses);
     }
 
     public async Task DeleteAsync(int id)

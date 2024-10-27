@@ -8,7 +8,7 @@ public class AddressDto
     public int Type { get; set; }
 
     [JsonPropertyName("address")]
-    public string Address { get; set; }
+    public string Address { get; set; } = string.Empty;
 
     [JsonPropertyName("phone_numbers")] 
     public List<string> PhoneNumbers { get; set; } = [];
