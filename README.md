@@ -6,7 +6,7 @@ This is a backend system in C# that enables the creation of person with addresse
 
 Built on .NET 8
 
-Leveraging Postgre database deployed in AWS
+Leveraging Postgre database deployed in AWS using Database First Approach
 
 using Serilog for logging to file
 
