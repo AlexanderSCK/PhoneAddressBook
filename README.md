@@ -21,9 +21,11 @@ using Serilog for logging to file
 - **Request Body** (sample):
 
 ```json
-GET /api/persons?pageNumber=1&pageSize=10&filter=Jane HTTP/1.1
+{
+"GET /api/persons?pageNumber=1&pageSize=10&filter=Alexander HTTP/1.1
 Host: localhost:5000
-Accept: application/json
+Accept: application/json"
+}
 ```
 - **Response**: (sample):
 ```json
@@ -168,5 +170,7 @@ Accept: application/json
 - **Response** (sample): 200 NoContent
 
 ```json
-Deleted person with id: [id]
+{
+"Deleted person with id: [id]"
+}
 ```
