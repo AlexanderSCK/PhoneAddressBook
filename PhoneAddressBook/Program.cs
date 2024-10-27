@@ -2,6 +2,7 @@ using PhoneAddressBook.Infrastructure.Module;
 using PhoneAddressBook.Application.Module;
 using Serilog;
 using PhoneAddressBook.API.Middleware;
+using PhoneAddressBook.API.Module;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,14 +18,11 @@ Log.Logger = new LoggerConfiguration()
 builder.Host.UseSerilog();
 
 builder.Services.AddInfrastructureModule(builder.Configuration);
-builder.Services.AddApplicationModule(builder.Configuration);
+builder.Services.AddApplicationModule();
+builder.Services.AddApiModule();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddExceptionHandler<NotFoundExceptionHandler>();
-builder.Services.AddExceptionHandler<BadRequestExceptionHandler>();
-builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
-builder.Services.AddProblemDetails();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

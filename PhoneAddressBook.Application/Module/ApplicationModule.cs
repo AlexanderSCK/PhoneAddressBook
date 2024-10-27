@@ -7,7 +7,7 @@ namespace PhoneAddressBook.Application.Module;
 
 public static class ApplicationModule
 {
-    public static void AddApplicationModule(this IServiceCollection services, IConfiguration configuration)
+    public static void AddApplicationModule(this IServiceCollection services)
     {
         services.AddScoped<IPersonService, PersonService>();
     }
