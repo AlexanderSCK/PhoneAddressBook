@@ -14,17 +14,15 @@ using Serilog for logging to file
 
 ### 1. Get All Persons
 
-- **Endpoint**: GET /api/persons
+- **Endpoint**: GET /api/persons 
 - **Description**: Retrieves a paginated list of persons with optional filtering by full name.
 - **Headers**:
   - `Content-Type`: application/json
-- **Request Body** (sample):
+- **Request Exammple** (sample): 
 
 ```json
 {
-"GET /api/persons?pageNumber=1&pageSize=10&filter=Alexander HTTP/1.1
-Host: localhost:5000
-Accept: application/json"
+"GET /api/persons?pageNumber=1&pageSize=10&filter=Alexander HTTP/1.1"
 }
 ```
 - **Response**: (sample):
