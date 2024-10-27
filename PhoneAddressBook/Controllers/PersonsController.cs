@@ -71,7 +71,7 @@ public class PersonsController : ControllerBase
     }
 
     /// <summary>
-    /// Updates an existing person.
+    /// Updates an existing person addresses.
     /// </summary>
     [HttpPut("{id:int}")]
     public async Task<ActionResult<PersonDto>> UpdateAddresses(int id, UpdatePersonDto updatePersonDto)

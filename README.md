@@ -125,7 +125,7 @@ Accept: application/json"
 
 ### 4. Update an Existing Person
 - **Endpoint**: PUT /api/persons/{id} //Example 4
-- **Description**: Updates the details of an existing person, including their addresses and phone numbers.
+- **Description**: Updates the details of an existing person addresses and phone numbers.
 - **Headers**:
   - `Content-Type`: application/json
 - **Request Body** (sample):
