@@ -5,11 +5,11 @@ using Moq;
 using PhoneAddressBook.API.DTOs;
 using PhoneAddressBook.API.Exceptions;
 using PhoneAddressBook.Application.Interfaces;
+using PhoneAddressBook.Controllers;
 using PhoneAddressBook.Domain.Entities;
 using PhoneAddressBook.Domain.Enums;
-using PhoneAddressBook.Controllers;
 
-namespace PhoneAddressBook.Tests.Repositories;
+namespace PhoneAddressBook.Tests.Controllers;
 
 [TestFixture]
 public class PersonsControllerTests
