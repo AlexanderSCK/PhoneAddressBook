@@ -1,12 +1,10 @@
 # PhoneAddressBook
 
-# PhoneAddressBook API
-
 This is a backend api in C# that enables the creation of person with addresses and phone numbers
 
 Built on .NET 8
 
-Leveraging Postgre database deployed in AWS using Database First Approach
+Leveraging PostgreSQL database deployed in AWS using Database First Approach
 
 using Serilog for logging to file
 
