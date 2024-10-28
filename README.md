@@ -121,7 +121,7 @@ using Serilog for logging to file
 }
 ```
 
-### 4. Update an Existing Person
+### 4. Update an Existing Person Addresses
 - **Endpoint**: PUT /api/persons/{id} //Example 4
 - **Description**: Updates the details of an existing person addresses and phone numbers.
 - **Headers**:
