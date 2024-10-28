@@ -1,8 +1,8 @@
 # PhoneAddressBook
 
-# FormBuilder
+# PhoneAddressBook API
 
-This is a backend system in C# that enables the creation of person with addresses and phone numbers
+This is a backend api in C# that enables the creation of person with addresses and phone numbers
 
 Built on .NET 8
 
